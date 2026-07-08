@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trend Radar — Client Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900;1,9..144,900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#0B0A09; --cream:#16130F; --oat:#201B16;
+  --espresso:#F1E9DE; --cocoa:#D6CABB; --mocha:#AC9A86; --latte:#8A7867;
+  --cinnamon:#C85E33; --ink:#FBF5EA;
+  --line:#2C2620; --line-strong:#3E362E;
+  --rising:#A6CE80; --amber:#E6AC50;
+  --shadow:0 16px 44px rgba(0,0,0,0.55);
+  --disp:"Fraunces","Georgia",serif; --mono:"Space Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--mono);background:var(--paper);color:var(--espresso);
+  min-height:100vh;line-height:1.6;font-size:15px;
+  -webkit-font-smoothing:antialiased;}
+::selection{background:var(--cinnamon);color:var(--ink);}
+.wrap{max-width:720px;margin:0 auto;padding:44px 22px 80px;}
+
+/* Header */
+.ph{display:flex;flex-direction:column;gap:4px;margin-bottom:28px;}
+.ph-name{font-family:var(--disp);font-style:italic;font-weight:900;font-size:30px;
+  letter-spacing:-0.02em;line-height:1.05;}
+.ph-sub{font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--mocha);
+  letter-spacing:0.16em;text-transform:uppercase;}
+
+/* Cards */
+.card{background:var(--cream);border:1px solid var(--line);border-radius:18px;
+  box-shadow:var(--shadow);padding:26px 28px;margin-bottom:20px;}
+.eyebrow{font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--cinnamon);
+  letter-spacing:0.16em;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--cinnamon);
+  box-shadow:0 0 0 3px rgba(200,94,51,0.18);}
+.sec-title{font-family:var(--disp);font-weight:900;font-style:italic;font-size:22px;
+  letter-spacing:-0.01em;margin-bottom:14px;}
+
+/* Hero */
+.hero-title{font-family:var(--disp);font-weight:900;font-style:italic;font-size:32px;
+  letter-spacing:-0.02em;line-height:1.05;margin-bottom:8px;}
+.hero-sub{font-size:14px;color:var(--cocoa);margin-bottom:18px;}
+.hit-rate{display:inline-block;font-family:var(--mono);font-size:12.5px;font-weight:700;
+  color:var(--rising);background:rgba(166,206,128,0.10);border:1px solid rgba(166,206,128,0.30);
+  padding:8px 14px;border-radius:999px;margin-bottom:18px;}
+.btn{display:inline-flex;align-items:center;gap:8px;background:var(--cinnamon);color:var(--ink);
+  text-decoration:none;border:none;cursor:pointer;padding:12px 22px;border-radius:12px;
+  font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;
+  transition:filter .2s;}
+.btn:hover{filter:brightness(0.9);}
+
+/* Events */
+.ev{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding:12px 0;border-bottom:1px solid var(--line);}
+.ev:last-child{border-bottom:none;}
+.ev-date{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--mocha);
+  letter-spacing:0.06em;text-transform:uppercase;min-width:52px;}
+.ev-name{font-family:var(--disp);font-weight:600;font-size:16.5px;}
+.ev-when{font-family:var(--mono);font-size:10.5px;color:var(--latte);margin-left:auto;white-space:nowrap;}
+.ev-pill{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;
+  padding:3px 9px;border-radius:999px;background:rgba(200,94,51,0.16);color:var(--cinnamon);
+  border:1px solid rgba(200,94,51,0.35);margin-left:auto;}
+.ev-tie{width:100%;font-family:var(--mono);font-size:11px;color:var(--mocha);padding-left:64px;margin-top:2px;}
+.ev-tie b{color:var(--rising);font-weight:700;}
+
+/* Track record */
+.tr-summary{font-family:var(--disp);font-size:17px;color:var(--cocoa);margin-bottom:16px;font-style:italic;}
+.tr-summary b{color:var(--rising);font-style:normal;}
+.pick{padding:13px 0;border-bottom:1px solid var(--line);}
+.pick:last-child{border-bottom:none;}
+.pick-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.pick-term{font-family:var(--disp);font-weight:600;font-size:16px;text-transform:capitalize;}
+.pick-cycle{font-family:var(--mono);font-size:10px;color:var(--latte);text-transform:uppercase;letter-spacing:0.06em;}
+.pick-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px;}
+.ob{font-family:var(--mono);font-size:10.5px;font-weight:700;cursor:pointer;padding:6px 11px;border-radius:9px;
+  border:1px solid var(--line-strong);background:var(--oat);color:var(--cocoa);transition:all .15s;}
+.ob:hover{border-color:var(--mocha);color:var(--espresso);}
+.ob.on{background:var(--cinnamon);color:var(--ink);border-color:var(--cinnamon);}
+
+/* Feedback */
+.rate{display:flex;gap:7px;margin-bottom:12px;}
+.rb{font-family:var(--mono);font-size:15px;font-weight:700;width:42px;height:42px;cursor:pointer;
+  border:1px solid var(--line-strong);border-radius:11px;background:var(--oat);color:var(--espresso);transition:all .15s;}
+.rb.on{background:var(--cinnamon);color:var(--ink);border-color:var(--cinnamon);}
+textarea{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--oat);
+  color:var(--espresso);font-family:var(--mono);font-size:13px;resize:vertical;min-height:66px;}
+textarea:focus{outline:none;border-color:var(--cinnamon);}
+.thanks{display:none;color:var(--rising);font-size:14px;margin-top:12px;}
+
+.empty{color:var(--latte);font-style:italic;font-family:var(--disp);font-size:16px;}
+.foot{text-align:center;font-family:var(--mono);font-size:10px;color:var(--latte);
+  letter-spacing:0.06em;text-transform:uppercase;margin-top:36px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="ph">
+    <div class="ph-name" id="bakeryName">Trend Radar</div>
+    <div class="ph-sub">Your Bi-Weekly Trend Briefing</div>
+  </div>
+
+  <!-- Latest briefing -->
+  <div class="card">
+    <div class="eyebrow"><span class="dot"></span> This Cycle</div>
+    <div class="hero-title" id="cycleLabel">Loading&hellip;</div>
+    <div class="hero-sub" id="cycleSub"></div>
+    <div id="hitRate"></div>
+    <div><a class="btn" id="openBriefing" href="/briefing/latest" target="_blank">
+      Open your briefing
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+    </a></div>
+  </div>
+
+  <!-- Coming up -->
+  <div class="card">
+    <div class="eyebrow"><span class="dot"></span> Plan Ahead</div>
+    <div class="sec-title">Coming Up</div>
+    <div id="events"><div class="empty">Loading&hellip;</div></div>
+  </div>
+
+  <!-- Track record -->
+  <div class="card">
+    <div class="eyebrow"><span class="dot"></span> Proof</div>
+    <div class="sec-title">Your Track Record</div>
+    <div class="tr-summary" id="trSummary"></div>
+    <div id="picks"></div>
+  </div>
+
+  <!-- Feedback -->
+  <div class="card">
+    <div class="eyebrow"><span class="dot"></span> Tell Us</div>
+    <div class="sec-title">How useful was this briefing?</div>
+    <div class="rate" id="rate"></div>
+    <textarea id="note" placeholder="What would make this more useful for your bakery?"></textarea>
+    <div><button class="btn" style="margin-top:12px;" onclick="sendFeedback()">Send feedback</button></div>
+    <p class="thanks" id="thanks">Thank you — your feedback was recorded.</p>
+  </div>
+
+  <div class="foot">Trend Radar</div>
+</div>
+
+<script>
+let _data = null, _rating = null;
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtDate(iso){ if(!iso) return ''; const d=new Date(iso+(iso.endsWith('Z')?'':'Z')); return d.toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'}); }
+function fmtMD(iso){ const d=new Date(iso+'T00:00:00'); return d.toLocaleDateString([],{month:'short',day:'numeric'}); }
+
+async function load(){
+  try{ _data = await fetch('/api/portal').then(r=>r.json()); }
+  catch(e){ document.getElementById('cycleLabel').textContent='Could not load.'; return; }
+  render();
+}
+
+function render(){
+  const d = _data;
+  document.getElementById('bakeryName').textContent = d.bakery || 'Trend Radar';
+  // Cycle
+  if(d.cycle){
+    document.getElementById('cycleLabel').textContent = d.cycle.label;
+    document.getElementById('cycleSub').textContent = 'Generated ' + fmtDate(d.cycle.generated) + ' — your launch, watch & retire recommendations.';
+    document.getElementById('openBriefing').href = '/briefing/view/' + encodeURIComponent(d.cycle.id);
+  } else {
+    document.getElementById('cycleLabel').textContent = 'No briefing yet';
+    document.getElementById('cycleSub').textContent = 'Your first briefing will appear here once it runs.';
+    document.getElementById('openBriefing').style.display = 'none';
+  }
+  document.getElementById('hitRate').innerHTML = d.hit_rate
+    ? '<div class="hit-rate">&#10003; ' + esc(d.hit_rate) + '</div>' : '';
+
+  // Events
+  const ev = document.getElementById('events');
+  const events = d.events || [];
+  ev.innerHTML = events.length ? events.map(e=>{
+    const urgent = e.status==='act_now';
+    const when = urgent
+      ? '<span class="ev-pill">decide by ' + fmtMD(e.decide_by) + '</span>'
+      : '<span class="ev-when">' + e.days_until + ' days out</span>';
+    const ties = (e.tie_ins||[]).slice(0,2).map(t=>'<b>'+esc(t.term)+'</b>').join(', ');
+    return '<div class="ev"><span class="ev-date">'+fmtMD(e.date)+'</span>'
+      + '<span class="ev-name">'+esc(e.name)+'</span>'+when
+      + (ties?'<div class="ev-tie">Trending now: '+ties+'</div>':'')+'</div>';
+  }).join('') : '<div class="empty">Nothing on the calendar in the next 60 days.</div>';
+
+  // Track record
+  const tr = d.track_record || {outcomes:[]};
+  const sum = document.getElementById('trSummary');
+  if(tr.resolved){
+    sum.innerHTML = '<b>'+tr.wins+'</b> of '+tr.resolved+' resolved picks sold well so far.';
+  } else {
+    sum.innerHTML = 'No picks resolved yet — mark what happened below and your track record builds here.';
+  }
+  const picks = document.getElementById('picks');
+  const labels = tr.labels || {};
+  const outs = tr.outcomes || [];
+  picks.innerHTML = outs.length ? outs.slice(0,12).map(o=>{
+    const btns = Object.keys(labels).map(k=>
+      '<button class="ob'+(o.status===k?' on':'')+'" onclick="mark(\''+esc(o.month)+'\',\''+esc(o.term)+'\',\''+k+'\')">'+esc(labels[k])+'</button>'
+    ).join('');
+    return '<div class="pick"><div class="pick-top">'
+      + '<span class="pick-term">'+esc(o.term)+'</span>'
+      + '<span class="pick-cycle">'+esc(o.month)+'</span></div>'
+      + '<div class="pick-btns">'+btns+'</div></div>';
+  }).join('') : '<div class="empty">No picks logged yet.</div>';
+
+  // Feedback rating buttons
+  const rate = document.getElementById('rate');
+  rate.innerHTML = [1,2,3,4,5].map(n=>'<button class="rb" data-n="'+n+'" onclick="setRating('+n+')">'+n+'</button>').join('');
+}
+
+function setRating(n){
+  _rating = n;
+  document.querySelectorAll('#rate .rb').forEach(b=>b.classList.toggle('on', +b.dataset.n <= n));
+}
+
+async function mark(month, term, status){
+  await fetch('/api/outcomes', {method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({month, term, status})});
+  await load();  // refresh track record + hit-rate
+}
+
+async function sendFeedback(){
+  const note = document.getElementById('note').value;
+  if(!_rating && !note.trim()) return;
+  await fetch('/api/feedback', {method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({rating:_rating, note, cycle:(_data&&_data.cycle?_data.cycle.label:'')})});
+  document.getElementById('thanks').style.display='block';
+  document.getElementById('note').value='';
+}
+
+load();
+</script>
+</body>
+</html>

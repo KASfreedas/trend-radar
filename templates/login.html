@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ bakery_name }} — Trend Radar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#0B0A09; --cream:#16130F; --espresso:#F1E9DE; --cocoa:#D6CABB;
+  --mocha:#AC9A86; --kraft:#5E5147; --cinnamon:#C85E33; --cinnamon-ink:#FBF5EA;
+  --line:#2C2620; --shadow-md:0 16px 44px rgba(0,0,0,0.55);
+  --font-display:"Fraunces","Georgia",serif; --font-body:"Space Mono",ui-monospace,monospace;
+  --font-mono:"Space Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:var(--font-body); background:var(--paper); color:var(--espresso);
+  min-height:100vh; display:flex; align-items:center; justify-content:center;
+}
+.card{
+  background:var(--cream); border:1px solid var(--line); border-radius:20px;
+  box-shadow:var(--shadow-md); padding:40px 36px; width:100%; max-width:360px;
+}
+h1{
+  font-family:var(--font-display); font-weight:900; font-size:1.6rem;
+  color:var(--espresso); margin-bottom:4px;
+}
+p.sub{ font-size:14px; color:var(--mocha); margin-bottom:24px; }
+label{
+  display:block; font-family:var(--font-mono); font-size:11px; text-transform:uppercase;
+  letter-spacing:.08em; color:var(--mocha); margin-bottom:6px;
+}
+input{
+  width:100%; padding:11px 14px; border:1px solid var(--line); border-radius:10px;
+  background:var(--paper); color:var(--espresso); font-family:var(--font-mono);
+  font-size:14px; margin-bottom:16px;
+}
+input:focus{ outline:none; border-color:var(--cinnamon); }
+button{
+  width:100%; padding:12px; border:none; border-radius:10px; cursor:pointer;
+  background:var(--cinnamon); color:var(--cinnamon-ink); font-family:var(--font-body);
+  font-weight:600; font-size:15px;
+}
+button:hover{ opacity:.92; }
+.err{
+  background:var(--paper); border:1px solid var(--cinnamon); border-radius:8px;
+  padding:9px 12px; font-family:var(--font-mono); font-size:12px; color:var(--cinnamon);
+  margin-bottom:16px;
+}
+</style>
+</head>
+<body>
+  <form class="card" method="POST">
+    <h1>Trend Radar</h1>
+    <p class="sub">{{ bakery_name }} — sign in to continue</p>
+    {% if error %}<div class="err">{{ error }}</div>{% endif %}
+    <label for="password">Password</label>
+    <input type="password" id="password" name="password" autofocus autocomplete="current-password">
+    <button type="submit">Sign in</button>
+  </form>
+</body>
+</html>

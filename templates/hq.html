@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trend Radar — HQ Rollup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900;1,9..144,900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#0B0A09; --cream:#16130F; --oat:#201B16;
+  --espresso:#F1E9DE; --cocoa:#D6CABB; --mocha:#AC9A86; --latte:#8A7867;
+  --cinnamon:#C85E33; --ink:#FBF5EA; --rising:#A6CE80; --amber:#E6AC50;
+  --line:#2C2620; --line-strong:#3E362E;
+  --shadow:0 16px 44px rgba(0,0,0,0.55);
+  --disp:"Fraunces","Georgia",serif; --mono:"Space Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--mono);background:var(--paper);color:var(--espresso);
+  min-height:100vh;line-height:1.6;font-size:15px;-webkit-font-smoothing:antialiased;}
+::selection{background:var(--cinnamon);color:var(--ink);}
+.wrap{max-width:1080px;margin:0 auto;padding:44px 22px 80px;}
+
+/* Header */
+.hh{margin-bottom:26px;}
+.hh-name{font-family:var(--disp);font-style:italic;font-weight:900;font-size:32px;letter-spacing:-0.02em;line-height:1.05;}
+.hh-sub{font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--mocha);letter-spacing:0.16em;text-transform:uppercase;margin-top:4px;}
+
+.eyebrow{font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--cinnamon);
+  letter-spacing:0.16em;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--cinnamon);box-shadow:0 0 0 3px rgba(200,94,51,0.18);}
+
+/* National band */
+.national{background:var(--cream);border:1px solid var(--line-strong);border-radius:18px;
+  box-shadow:var(--shadow);padding:22px 26px;margin-bottom:24px;}
+.nat-title{font-family:var(--disp);font-weight:900;font-style:italic;font-size:21px;margin-bottom:4px;}
+.nat-note{font-size:12.5px;color:var(--latte);margin-bottom:14px;}
+.chips{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{font-family:var(--mono);font-size:12px;padding:7px 13px;border-radius:999px;border:1px solid var(--line-strong);
+  background:var(--oat);color:var(--espresso);text-transform:capitalize;display:flex;align-items:center;gap:8px;}
+.chip .m{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;padding:2px 6px;border-radius:6px;}
+.m.rising{background:rgba(166,206,128,0.14);color:var(--rising);}
+.m.peaking{background:rgba(230,172,80,0.14);color:var(--amber);}
+.m.high{color:var(--rising);} .m.medium{color:var(--amber);} .m.low{color:var(--latte);}
+
+/* Cluster grid */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+@media(max-width:760px){.grid{grid-template-columns:1fr;}}
+.cl{background:var(--cream);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);
+  padding:24px 26px;transition:border-color .2s;}
+.cl:hover{border-color:var(--line-strong);}
+.cl-name{font-family:var(--disp);font-weight:900;font-style:italic;font-size:23px;letter-spacing:-0.01em;}
+.cl-blurb{font-size:13px;color:var(--mocha);margin:4px 0 12px;font-style:italic;font-family:var(--disp);}
+.cl-locs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;}
+.loc{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0.04em;padding:4px 9px;border-radius:8px;
+  background:var(--oat);color:var(--cocoa);border:1px solid var(--line);}
+.sub{font-family:var(--mono);font-size:9.5px;font-weight:700;color:var(--mocha);letter-spacing:0.12em;
+  text-transform:uppercase;margin:14px 0 8px;}
+.local-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:12.5px;}
+.local-row:last-child{border-bottom:none;}
+.lr-src{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;padding:2px 6px;border-radius:6px;
+  background:var(--oat);color:var(--mocha);border:1px solid var(--line);}
+.lr-tag{color:var(--espresso);font-weight:700;}
+.lr-rate{color:var(--latte);margin-left:auto;white-space:nowrap;font-size:11px;}
+.comp{display:flex;flex-wrap:wrap;gap:6px;}
+.comp span{font-family:var(--mono);font-size:11px;color:var(--cocoa);padding:3px 9px;border-radius:999px;
+  background:var(--oat);border:1px solid var(--line);}
+.empty{color:var(--latte);font-style:italic;font-family:var(--disp);font-size:14px;}
+.foot{text-align:center;font-family:var(--mono);font-size:10px;color:var(--latte);letter-spacing:0.06em;text-transform:uppercase;margin-top:36px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hh">
+    <div class="hh-name" id="hqName">HQ Rollup</div>
+    <div class="hh-sub" id="hqSub">Loading&hellip;</div>
+  </div>
+
+  <!-- National -->
+  <div class="national">
+    <div class="eyebrow"><span class="dot"></span> Shared Across All Locations</div>
+    <div class="nat-title">National &amp; Brand Trends</div>
+    <div class="nat-note">Scanned once — these move the same everywhere. Where to <em>launch</em> them is what differs by market, below.</div>
+    <div class="chips" id="national"><span class="empty">Loading&hellip;</span></div>
+  </div>
+
+  <!-- Clusters -->
+  <div class="eyebrow" style="margin-bottom:14px;"><span class="dot"></span> By Market</div>
+  <div class="grid" id="clusters"></div>
+
+  <div class="foot" id="foot"></div>
+</div>
+
+<script>
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+async function load(){
+  let d;
+  try{ d = await fetch('/api/hq').then(r=>r.json()); }
+  catch(e){ document.getElementById('hqSub').textContent='Could not load.'; return; }
+  document.getElementById('hqName').textContent = (d.bakery||'Trend Radar') + ' — HQ';
+  document.getElementById('hqSub').textContent =
+    d.location_count + ' locations · ' + d.cluster_count + ' markets · bi-weekly rollup';
+
+  // National chips
+  const nat = document.getElementById('national');
+  nat.innerHTML = (d.national||[]).length ? d.national.map(t=>
+    '<span class="chip">'+esc(t.term)
+    + '<span class="m '+esc(t.direction)+'">'+esc(t.direction)+'</span>'
+    + '<span class="m '+esc(t.confidence)+'">'+esc(t.confidence)+'</span></span>'
+  ).join('') : '<span class="empty">No strong national movers this cycle — a quiet cycle.</span>';
+
+  // Cluster cards
+  const wrap = document.getElementById('clusters');
+  wrap.innerHTML = (d.clusters||[]).map(c=>{
+    const locs = (c.locations||[]).map(l=>'<span class="loc">'+esc(l)+'</span>').join('');
+    let local = '';
+    const igRows = (c.local_ig||[]).map(t=>rowHtml('IG', t.hashtag, (t.posts_per_day||0)+'/day'));
+    const ttRows = (c.local_tt||[]).map(t=>rowHtml('TT', t.hashtag, (t.velocity_display||((t.videos_per_day||0)+'/day'))));
+    const rows = igRows.concat(ttRows);
+    if(rows.length){
+      local = '<div class="sub">Local Buzz</div>' + rows.join('');
+    } else {
+      local = '<div class="sub">Local Buzz</div><div class="empty">No neighborhood data yet — populates once the geo-tags are scanned in a refresh.</div>';
+    }
+    const comps = (c.competitors||[]).length
+      ? '<div class="sub">Local Competitors</div><div class="comp">'+c.competitors.map(x=>'<span>#'+esc(x)+'</span>').join('')+'</div>'
+      : '';
+    return '<div class="cl"><div class="cl-name">'+esc(c.name)+'</div>'
+      + '<div class="cl-blurb">'+esc(c.blurb)+'</div>'
+      + '<div class="cl-locs">'+locs+'</div>'
+      + local + comps + '</div>';
+  }).join('');
+
+  document.getElementById('foot').textContent = 'Trend Radar · HQ';
+}
+function rowHtml(src, tag, rate){
+  return '<div class="local-row"><span class="lr-src">'+src+'</span>'
+    + '<span class="lr-tag">#'+esc(tag)+'</span>'
+    + '<span class="lr-rate">'+esc(rate)+'</span></div>';
+}
+load();
+</script>
+</body>
+</html>

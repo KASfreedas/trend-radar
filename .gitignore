@@ -1,0 +1,20 @@
+# Secrets — never commit. Real keys live only in .env (.env.example is the template).
+.env
+
+# Runtime state — scraped cache, briefing history, client config (contains
+# real emails + business identity), feedback, ML dataset. The app self-seeds
+# safe defaults into data/ on first run, so a fresh clone works without this.
+data/
+tenants/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+
+# Application material — not part of the public showcase
+FELLOWSHIP-PROGRESS.md
