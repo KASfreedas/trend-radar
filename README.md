@@ -65,3 +65,10 @@ needs `APIFY_TOKEN` in `.env` (copy `.env.example`). Email delivery needs
   USAGE "Starting it up" and SCORECARD §6 for the security reasoning.
 - **Multi-tenant:** one instance per bakery via `TENANT_ID`; `py tenancy.py new
   <id> --preset cupcakes --city chicago` scaffolds a new one.
+
+## License
+
+Source-available under the [PolyForm Noncommercial License 1.0.0](LICENSE.md):
+you may read, run, and experiment with this code for any noncommercial
+purpose. **Commercial use — including running it for a business — requires a
+separate commercial license.** Contact the copyright holder.
