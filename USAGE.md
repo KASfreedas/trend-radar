@@ -136,6 +136,17 @@ a firehose.
 
 ### 4. Settings — *configuration* (four tabs, below)
 
+### Market pages — `/market/<key>` *(multi-location)*
+Each market cluster gets its own page: a poster-style header with that
+market's real local-buzz trend line drawn under its name, the launch picks
+routed to that market's risk profile, its local event calendar with
+decide-by dates, live occasion demand, neighborhood hashtag activity with
+scan-over-scan movers, and its tracked competitors. Open them from the
+**HQ Rollup** view ("View market page →" on each market card); prev/next
+links at the bottom cycle through all markets. Same honesty rule as the
+briefing: every number restates a scraped value, and a quiet market says
+so plainly instead of dressing it up.
+
 ---
 
 ## Reading the outputs — the trust ladder

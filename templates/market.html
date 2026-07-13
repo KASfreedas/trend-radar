@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ bakery_name }} — Trend Radar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,900;1,9..144,600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#0B0A09; --cream:#16130F; --oat:#201B16;
+  --espresso:#F1E9DE; --cocoa:#C9BBA8; --mocha:#A08D75; --latte:#7A6A56;
+  --cinnamon:#C85E33; --line:#2C2620;
+  --rising-ink:#A8B87C; --rising-tint:#1B2012;
+  --peaking-ink:#D9A648; --peaking-tint:#231B0E;
+  --fading-ink:#9C8B77; --fading-tint:#1D1915;
+  --font-display:"Fraunces",Georgia,serif;
+  --font-mono:"Space Mono",monospace;
+  --r-card:16px; --r-pill:999px;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--paper);color:var(--espresso);font-family:var(--font-mono);
+  -webkit-font-smoothing:antialiased;}
+a{color:var(--cinnamon);text-decoration:none;}
+a:focus-visible,button:focus-visible{outline:2px solid var(--cinnamon);outline-offset:2px;}
+.skip{position:absolute;left:-9999px;}
+.skip:focus{left:20px;top:14px;z-index:10;background:var(--oat);padding:8px 14px;border-radius:8px;}
+.wrap{max-width:1180px;margin:0 auto;padding:0 32px;}
+@media(max-width:768px){.wrap{padding:0 20px;}}
+
+/* ── §1 HERO — story register ─────────────────────────────── */
+.mk-hero{min-height:86vh;display:flex;flex-direction:column;justify-content:center;
+  position:relative;overflow:hidden;padding-bottom:24px;}
+.mk-hero::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 70% 45% at 50% 62%, rgba(200,94,51,0.07), transparent 70%);}
+.mk-back{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;
+  position:absolute;top:26px;left:0;}
+.mk-eyebrow{font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--mocha);margin:0 0 18px;}
+.mk-eyebrow .dot{color:var(--cinnamon);}
+.mk-namewrap{position:relative;line-height:0.92;}
+.mk-pulse{position:absolute;left:-2%;right:-2%;width:104%;height:120px;
+  bottom:-28px;z-index:0;opacity:0.85;}
+.mk-name{position:relative;z-index:1;font-family:var(--font-display);font-weight:900;
+  font-size:clamp(56px,10vw,128px);letter-spacing:-0.02em;margin:0;color:var(--espresso);}
+.mk-thesis{font-family:var(--font-display);font-style:italic;font-weight:600;
+  font-size:clamp(20px,2.4vw,28px);color:var(--espresso);margin:34px 0 0;max-width:640px;
+  line-height:1.35;}
+.mk-thesis b{color:var(--cinnamon);font-style:normal;}
+.mk-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:26px;}
+.chip{font-size:10.5px;letter-spacing:0.06em;color:var(--latte);background:var(--oat);
+  border:1px solid var(--line);border-radius:var(--r-pill);padding:5px 12px;}
+.mk-scanned{margin:22px 0 0;font-size:10px;letter-spacing:0.1em;
+  text-transform:uppercase;color:var(--latte);}
+.reveal{opacity:0;transform:translateY(24px);
+  transition:opacity .6s cubic-bezier(.22,1,.36,1),transform .6s cubic-bezier(.22,1,.36,1);}
+.reveal.in{opacity:1;transform:none;}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none;}}
+
+/* ── section furniture ────────────────────────────────────── */
+section{margin-top:56px;}
+section.story{margin-top:96px;}
+.section-label{display:flex;align-items:center;gap:14px;font-size:11px;font-weight:700;
+  letter-spacing:0.16em;text-transform:uppercase;color:var(--mocha);margin-bottom:24px;}
+.section-label::after{content:"";flex:1;height:1px;background:var(--line);}
+.card{background:var(--cream);border:1px solid var(--line);border-radius:var(--r-card);
+  padding:22px 24px;}
+.placeholder{font-size:12px;color:var(--latte);line-height:1.6;padding:6px 0;}
+
+/* ── §2 picks ─────────────────────────────────────────────── */
+.mk-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;}
+.pick-term{font-family:var(--font-display);font-weight:600;font-size:20px;margin:0 0 12px;
+  text-transform:capitalize;}
+.badges{display:flex;gap:6px;flex-wrap:wrap;}
+.badge{font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;
+  padding:3px 9px;border-radius:var(--r-pill);}
+.badge.rising{background:var(--rising-tint);color:var(--rising-ink);border:1px solid rgba(168,184,124,.25);}
+.badge.peaking{background:var(--peaking-tint);color:var(--peaking-ink);border:1px solid rgba(217,166,72,.25);}
+.badge.conf{background:var(--oat);color:var(--cocoa);border:1px solid var(--line);}
+.pick-stat{font-size:13px;font-weight:700;color:var(--cinnamon);margin:16px 0 0;letter-spacing:0.03em;}
+.pick-ev{font-size:11px;color:var(--mocha);margin:8px 0 0;line-height:1.5;}
+
+/* ── leader rows (work register) ──────────────────────────── */
+.lrow{display:flex;align-items:baseline;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);}
+.lrow:last-child{border-bottom:none;}
+.lrow .k{font-size:12px;color:var(--espresso);white-space:nowrap;}
+.lrow .lead{flex:1;border-bottom:1px dotted var(--latte);opacity:.55;transform:translateY(-3px);}
+.lrow .v{font-size:13px;font-weight:700;color:var(--espresso);white-space:nowrap;}
+.lrow .u{font-size:10px;color:var(--latte);font-weight:400;}
+.lrow .up{color:var(--rising-ink);} .lrow .dn{color:var(--peaking-ink);}
+.ev-date{font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;
+  color:var(--mocha);min-width:56px;}
+.ev-date.act{color:var(--cinnamon);}
+.ev-name{font-family:var(--font-display);font-weight:600;font-size:16px;color:var(--espresso);}
+.pill{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;
+  padding:3px 9px;border-radius:var(--r-pill);background:rgba(200,94,51,.16);
+  color:var(--cinnamon);border:1px solid rgba(200,94,51,.35);white-space:nowrap;}
+.occ-note{width:100%;font-size:11px;color:var(--mocha);font-style:italic;padding-left:66px;
+  font-family:var(--font-display);}
+.sub{font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--latte);margin:2px 0 8px;}
+.hr{height:1px;background:var(--line);margin:14px 0;opacity:.6;}
+
+.mk-cols{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+@media(max-width:1024px){.mk-cols{grid-template-columns:1fr;}}
+.src{font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--latte);margin:0 0 10px;}
+
+/* ── footer nav ───────────────────────────────────────────── */
+.mk-footnav{display:flex;justify-content:space-between;align-items:center;gap:16px;
+  margin:96px 0 0;padding:28px 0 44px;border-top:1px solid var(--line);
+  font-size:12px;letter-spacing:0.04em;}
+.mk-footnav .mid{color:var(--latte);}
+.err{max-width:520px;margin:20vh auto;text-align:center;}
+.btn-refresh{background:var(--cinnamon);color:var(--espresso);border:none;cursor:pointer;
+  border-radius:var(--r-pill);padding:10px 22px;font-family:var(--font-mono);
+  font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-top:18px;}
+</style>
+</head>
+<body data-market="{{ market_key }}">
+<a class="skip" href="#picks">Skip to launch picks</a>
+
+<div class="wrap">
+  <header class="mk-hero">
+    <a class="mk-back" href="/#hq">← HQ overview</a>
+    <p class="mk-eyebrow reveal" id="eyebrow"></p>
+    <div class="mk-namewrap">
+      <svg class="mk-pulse" viewBox="0 0 600 80" preserveAspectRatio="none" role="img" id="pulseSvg"></svg>
+      <h1 class="mk-name reveal" id="mkName"></h1>
+    </div>
+    <p class="mk-thesis reveal" id="thesis"></p>
+    <div class="mk-chips reveal" id="chips"></div>
+    <p class="mk-scanned" id="scanned"></p>
+  </header>
+
+  <main id="main">
+    <section class="story" id="picks">
+      <div class="section-label">Launch picks · this market</div>
+      <div class="mk-grid" id="picksGrid"></div>
+    </section>
+
+    <section>
+      <div class="section-label">Coming to this market</div>
+      <div class="card" id="eventsCard"></div>
+    </section>
+
+    <section>
+      <div class="section-label">Local buzz · live from social</div>
+      <div class="mk-cols">
+        <div class="card"><p class="src">Instagram · geo tags</p><div id="igRows"></div></div>
+        <div class="card"><p class="src">TikTok · geo tags</p><div id="ttRows"></div></div>
+      </div>
+      <div class="card" style="margin-top:24px;"><p class="src">Movers · vs last scan</p><div id="moverRows"></div></div>
+    </section>
+
+    <section>
+      <div class="section-label">Competitors here</div>
+      <div class="card" id="compsCard"></div>
+    </section>
+  </main>
+
+  <footer class="mk-footnav">
+    <a id="navPrev" href="#"></a>
+    <a class="mid" href="/#hq">↑ HQ overview</a>
+    <a id="navNext" href="#"></a>
+  </footer>
+</div>
+
+<script>
+const KEY = document.body.dataset.market;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const esc = s => String(s ?? '').replace(/[&<>"']/g,
+  c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pct = d => (d >= 0 ? '+' : '') + Math.round(d * 100) + '%';
+
+function reveal(){
+  const els = document.querySelectorAll('.reveal');
+  if(reduce){ els.forEach(e=>e.classList.add('in')); return; }
+  const io = new IntersectionObserver(en=>{
+    en.forEach(x=>{ if(x.isIntersecting){
+      setTimeout(()=>x.target.classList.add('in'), x.target.dataset.d||0);
+      io.unobserve(x.target); } });
+  },{threshold:0.25});
+  els.forEach((e,i)=>{ e.dataset.d = Math.min(i*80,320); io.observe(e); });
+}
+
+function renderPulse(pulse){
+  const svg = document.getElementById('pulseSvg');
+  const pts = pulse.points || [];
+  if(pts.length < 2){
+    svg.innerHTML = '<line x1="0" y1="64" x2="600" y2="64" stroke="var(--line)" stroke-width="1" stroke-dasharray="4 6"/>';
+    svg.setAttribute('aria-label', 'Not enough scans yet to draw a trend line');
+    document.getElementById('scanned').textContent +=
+      ` · pulse line appears after the next scan — ${pts.length} of 2 snapshots collected`;
+    return;
+  }
+  const vs = pts.map(p=>p.v), min = Math.min(...vs), max = Math.max(...vs), span = (max-min)||1;
+  const d = pts.map((p,i)=>{
+    const x = (i/(pts.length-1))*600;
+    const y = 80 - (8 + ((p.v-min)/span)*64);   // pad band [0.1,0.9]
+    return (i?'L':'M') + x.toFixed(1) + ',' + y.toFixed(1);
+  }).join(' ');
+  svg.innerHTML = `<path id="pulsePath" d="${d}" fill="none" stroke="#C85E33" stroke-width="2"
+    stroke-linejoin="round" stroke-linecap="round"/>
+    <circle id="pulseDot" cx="600" cy="${(80-(8+((vs[vs.length-1]-min)/span)*64)).toFixed(1)}" r="3.5" fill="#C85E33" opacity="0"/>`;
+  svg.setAttribute('aria-label',
+    `Local buzz across ${pts.length} scans: ${vs[0]} to ${vs[vs.length-1]} posts per day`);
+  const path = document.getElementById('pulsePath'), dot = document.getElementById('pulseDot');
+  if(reduce){ dot.style.opacity = 1; return; }
+  const L = path.getTotalLength();
+  path.style.strokeDasharray = L; path.style.strokeDashoffset = L;
+  new IntersectionObserver((en,io)=>{
+    if(en[0].isIntersecting){
+      path.style.transition = 'stroke-dashoffset 1.2s cubic-bezier(.22,1,.36,1)';
+      requestAnimationFrame(()=>{ path.style.strokeDashoffset = 0; });
+      setTimeout(()=>{ dot.style.transition='opacity .3s'; dot.style.opacity=1; }, 1300);
+      io.disconnect();
+    }
+  },{threshold:0.4}).observe(svg);
+}
+
+function leaderRow(k, right){
+  return `<div class="lrow"><span class="k">${k}</span><span class="lead"></span>${right}</div>`;
+}
+
+function render(j){
+  const m = j.market;
+  document.title = `${m.name} — ${j.bakery} Trend Radar`;
+  const n = (m.locations||[]).length;
+  document.getElementById('eyebrow').innerHTML =
+    `${esc(m.profile_label)} <span class="dot">·</span> ${n} location${n===1?'':'s'}` +
+    (m.blurb ? ` <span class="dot">·</span> ${esc(m.blurb.split('—')[0].split(',')[0].trim())}` : '');
+  document.getElementById('mkName').textContent = m.name;
+
+  const picks = j.launch_picks || [];
+  document.getElementById('thesis').innerHTML = picks.length
+    ? `Launch here first: <b>${esc(picks[0].term)} (${pct(picks[0].delta||0)})</b> — ${esc(m.profile_note||'')}`
+    : `Hold proven classics — nothing new cleared this market's bar this cycle.`;
+  document.getElementById('chips').innerHTML =
+    (m.locations||[]).map(l=>`<span class="chip">${esc(l)}</span>`).join('');
+  const when = j.scanned_at ? new Date(j.scanned_at).toLocaleDateString([],{month:'short',day:'numeric'}) : '—';
+  document.getElementById('scanned').textContent =
+    `Scanned ${when} · every number on this page is a real scraped value`;
+
+  document.getElementById('picksGrid').innerHTML = picks.length ? picks.map(p=>`
+    <div class="card reveal">
+      <p class="pick-term">${esc(p.term)}</p>
+      <div class="badges">
+        <span class="badge ${p.direction==='peaking'?'peaking':'rising'}">${p.direction==='peaking'?'► Peaking':'▲ Rising'}</span>
+        <span class="badge conf">Confidence: ${esc(p.confidence||'low')}</span>
+      </div>
+      <p class="pick-stat">${pct(p.delta||0)} momentum vs prior period</p>
+      ${(p.evidence||[]).map(e=>`<p class="pick-ev">${esc(e)}</p>`).join('')}
+    </div>`).join('')
+    : `<div class="card"><p class="placeholder">No new trend cleared the ${esc(m.profile_label.toLowerCase())} bar this cycle. That's a real answer: run proven sellers and the calendar below.</p></div>`;
+
+  const evs = j.events || [];
+  let evHtml = evs.length ? evs.map(ev=>{
+    const d = new Date(ev.date+'T00:00:00').toLocaleDateString([],{month:'short',day:'numeric'});
+    const decide = new Date(ev.decide_by+'T00:00:00').toLocaleDateString([],{month:'short',day:'numeric'});
+    const act = ev.status==='act_now';
+    return `<div class="lrow"><span class="ev-date${act?' act':''}">${d}</span>
+      <span class="ev-name">${esc(ev.name)}</span><span class="lead"></span>
+      ${act?`<span class="pill">decide by ${decide}</span>`
+           :`<span class="v">${ev.days_until}d out <span class="u">· plan by ${decide}</span></span>`}</div>`;
+  }).join('') : `<p class="placeholder">Nothing on this market's calendar in the next 90 days.</p>`;
+  const occ = j.occasion_buzz || [];
+  if(occ.length){
+    evHtml += `<div class="hr"></div><p class="sub">Occasion demand · live from social</p>` +
+      occ.slice(0,4).map(b=>`<div class="lrow"><span class="ev-date">Live</span>
+        <span class="ev-name">${esc(b.occasion)}</span><span class="lead"></span>
+        <span class="v">${b.mentions} mentions</span>${b.in_season?'<span class="pill">peak season now</span>':''}
+        <p class="occ-note">${esc(b.note)}</p></div>`).join('');
+  }
+  document.getElementById('eventsCard').innerHTML = evHtml;
+
+  const buzzRows = (list, rateKey) => list.length
+    ? list.map(t=>leaderRow(`#${esc(t.hashtag)}`,
+        `<span class="v">${t[rateKey]??0}<span class="u">/day</span></span>`)).join('')
+    : `<p class="placeholder">No local posts cleared the recency window this scan.</p>`;
+  document.getElementById('igRows').innerHTML = buzzRows(j.local_buzz.instagram, 'posts_per_day');
+  document.getElementById('ttRows').innerHTML = buzzRows(j.local_buzz.tiktok, 'videos_per_day');
+
+  const mv = j.movers || [];
+  document.getElementById('moverRows').innerHTML = mv.length ? mv.map(mo=>{
+    const up = mo.change_pct >= 0;
+    return leaderRow(`#${esc(mo.tag)}`,
+      `<span class="v">${mo.prev} → ${mo.curr}/day</span>
+       <span class="v ${up?'up':'dn'}">${up?'▲':'▼'} ${Math.abs(mo.change_pct)}%</span>`);
+  }).join('') : `<p class="placeholder">Movement needs two scans to measure — check back after the next refresh.</p>`;
+
+  const comps = m.competitors || [];
+  document.getElementById('compsCard').innerHTML = comps.length
+    ? `<div class="mk-chips" style="margin:0;">${comps.map(c=>
+        `<a class="chip" href="https://www.instagram.com/${esc(c)}/" target="_blank" rel="noopener">@${esc(c)}</a>`).join('')}</div>
+       <p class="placeholder" style="margin-top:14px;">Tracked but not yet scanned — competitor scans run on demand from Settings (each scan costs Apify credits).</p>`
+    : `<p class="placeholder">No competitors tracked for this market yet — add them in Settings → Markets.</p>`;
+
+  document.getElementById('navPrev').textContent = `← ${j.nav.prev.name}`;
+  document.getElementById('navPrev').href = `/market/${j.nav.prev.key}`;
+  document.getElementById('navNext').textContent = `${j.nav.next.name} →`;
+  document.getElementById('navNext').href = `/market/${j.nav.next.key}`;
+
+  renderPulse(j.pulse || {points:[]});
+  reveal();
+}
+
+async function load(){
+  try{
+    const r = await fetch('/api/market/' + encodeURIComponent(KEY));
+    if(!r.ok) throw new Error(r.status);
+    render(await r.json());
+  }catch(e){
+    document.getElementById('main').innerHTML = `<div class="err card">
+      <p class="placeholder">Couldn't load this market's data. The server may be restarting.</p>
+      <button class="btn-refresh" onclick="load()">Try again</button></div>`;
+    reveal();
+  }
+}
+if(KEY){ load(); }
+else{
+  document.getElementById('main').innerHTML = `<div class="err card">
+    <p class="placeholder">No market with that address. Pick one from the HQ overview.</p>
+    <a class="btn-refresh" style="display:inline-block;text-decoration:none;" href="/#hq">Go to HQ</a></div>`;
+  document.querySelector('.mk-hero').style.display='none';
+}
+</script>
+</body>
+</html>

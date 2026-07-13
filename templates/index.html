@@ -419,16 +419,22 @@ main{
 
 /* ── Trend bars (Google) ── */
 .trend-list{display:flex;flex-direction:column;gap:9px;}
-.trend-row{display:flex;align-items:center;gap:8px;}
+/* Two-line trend row: rank + label (wraps freely) + value on line one, the
+   bar on its own full-width line below — long terms can never collide with
+   the bar or the number, no matter how narrow the card. */
+.trend-row{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;
+  padding:7px 0;border-bottom:1px solid var(--line);}
+.trend-row:last-child{border-bottom:none;}
+.trend-list{max-height:320px;overflow-y:auto;padding-right:6px;}
 .t-rank{
   font-family:var(--font-mono);
   font-size:10px;font-weight:700;
   color:var(--latte);min-width:16px;text-align:right;
 }
 .t-rank.g{color:#B07D2A;} .t-rank.s{color:var(--latte);} .t-rank.b{color:var(--mocha);}
-.t-label{font-size:13px;font-weight:500;min-width:152px;flex-shrink:0;text-transform:capitalize;
-  font-family:var(--font-body);color:var(--cocoa);}
-.bar-wrap{flex:1;height:6px;background:var(--oat);border-radius:3px;overflow:hidden;}
+.t-label{font-size:13px;font-weight:500;flex:1;min-width:0;text-transform:capitalize;
+  font-family:var(--font-body);color:var(--cocoa);overflow-wrap:break-word;}
+.bar-wrap{flex-basis:100%;height:6px;background:var(--oat);border-radius:3px;overflow:hidden;}
 .bar{height:100%;border-radius:3px;background:var(--mocha);}
 .bar.top{background:var(--cinnamon);}
 .t-val{
@@ -450,6 +456,21 @@ main{
   margin:8px 0 16px;
   display:flex;align-items:center;gap:10px;
 }
+/* Default link color — inline styles still override where set. Without this,
+   any un-styled <a> falls back to browser blue, which clashes on dark. */
+a{color:var(--cinnamon);}
+/* Sticky category header for long editable lists (menu, watch lists): the
+   label stays pinned under the app header while its chips scroll — you always
+   know which list you're editing. Background matches the card it sits in. */
+.cat-hdr{
+  position:sticky;top:var(--header-h);z-index:5;
+  background:var(--cream);
+  padding:8px 0 9px;margin-bottom:9px;
+  font-family:var(--font-mono);font-size:11px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--mocha);
+  border-bottom:1px solid var(--line);
+}
+.cat-hdr .cnt{color:var(--latte);font-weight:400;}
 .section-label::before,.section-label::after{
   content:'';flex:1;
   border-top:1px solid var(--line);
@@ -477,6 +498,11 @@ main{
   padding:3px 7px;border-radius:var(--r-pill);
   background:var(--cinnamon);color:var(--cinnamon-ink);
   box-shadow:0 2px 8px rgba(0,0,0,0.4);
+}
+/* Real measured engagement delta since the previous scan ("became viral"). */
+.post-gained{
+  display:inline-block;font-family:var(--font-mono);font-size:9px;font-weight:700;
+  letter-spacing:0.04em;color:var(--rising-ink);margin-top:3px;
 }
 .vid-viral{
   display:inline-block;
@@ -956,9 +982,9 @@ main{
       </div>
     </div>
 
-    <!-- Row 1: Flavor Trend Chart + Packaging + Design -->
+    <!-- Row 1: Flavor chart + Packaging & Design chart -->
     <div class="section-label">Google Trends &mdash; 12 Months</div>
-    <div class="grid-3">
+    <div class="grid-2">
       <div class="card">
         <div class="card-hdr">
           <div class="card-title">
@@ -978,6 +1004,22 @@ main{
         <div class="card-hdr">
           <div class="card-title">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+            Packaging &amp; Design Trends
+          </div>
+          <span class="tag">Live · US</span>
+        </div>
+        <div class="rank-note">Top movers across box, wrap &amp; decorating searches (0&ndash;100)</div>
+        <div class="chart-wrap"><canvas id="pdChart"></canvas></div>
+        <div id="pdChartLegend" style="display:flex;flex-wrap:wrap;gap:5px 14px;margin-top:10px;"></div>
+      </div>
+    </div>
+
+    <!-- Row 1b: full ranked lists behind the charts -->
+    <div class="grid-2" style="margin-top:24px;">
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
             Packaging
           </div>
           <span class="tag">Google</span>
@@ -988,7 +1030,7 @@ main{
         <div class="card-hdr">
           <div class="card-title">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32"/></svg>
-            Design
+            Design &amp; Decorating
           </div>
           <span class="tag">Google</span>
         </div>
@@ -1901,21 +1943,87 @@ function renderFlavorChart(flavorData){
   }
 }
 
+// ── Packaging & Design 12-month chart ────────────────────────────────────────
+let pdChart = null;
+function renderPdChart(packaging, design){
+  const canvas = document.getElementById('pdChart');
+  if(!canvas) return;
+  const merged = (packaging||[]).map(t=>({...t,_cat:'PKG'}))
+    .concat((design||[]).map(t=>({...t,_cat:'DSN'})))
+    .filter(t=>t.time_series && t.time_series.length);
+  if(!merged.length) return;
+  // Line selection (display choice, not a stat): risers first, then by
+  // current interest — the chart should show what's moving, not just what's big.
+  merged.sort((a,b)=>((b.trend==='up')-(a.trend==='up')) || ((b.current_interest||0)-(a.current_interest||0)));
+  const lines = merged.slice(0,5);
+  const palette = [CINNAMON, '#E6AC50', '#A6CE80', '#79A9D6', '#D6CABB'];
+
+  const src = lines[0].time_series;
+  const labels = src.map(p=>{
+    const d = new Date(p.date);
+    return d.toLocaleDateString([],{month:'short',day:'numeric'});
+  }).filter((_,i)=> i % 7 === 0 || i === src.length-1);
+  const datasets = lines.map((t,i)=>({
+    label: t.keyword,
+    data: t.time_series.filter((_,j)=> j % 7 === 0 || j === t.time_series.length-1).map(p=>p.value),
+    borderColor: palette[i%palette.length],
+    backgroundColor: palette[i%palette.length]+'22',
+    borderWidth: i===0?2.5:1.5, pointRadius: 0, tension: 0.4, fill: i===0,
+  }));
+
+  if(pdChart) pdChart.destroy();
+  pdChart = new Chart(canvas.getContext('2d'),{
+    type:'line', data:{labels, datasets},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:CREAM,titleColor:ESPRESSO,bodyColor:MOCHA,
+          borderColor:LINE,borderWidth:1,
+          titleFont:{family:'Space Mono',weight:'bold'},
+          bodyFont:{family:'Space Mono'},
+        }
+      },
+      scales:{
+        x:{grid:{color:LINE},ticks:{font:{family:'Space Mono',size:10},color:LATTE}},
+        y:{grid:{color:LINE},ticks:{font:{family:'Space Mono',size:10},color:LATTE},min:0,max:100}
+      },
+      interaction:{intersect:false,mode:'index'},
+    }
+  });
+
+  const legend = document.getElementById('pdChartLegend');
+  if(legend) legend.innerHTML = lines.map((t,i)=>{
+    const sym = t.trend==='up'?'↑':t.trend==='down'?'↓':'→';
+    return `<span style="display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:11px;color:var(--mocha);">
+      <span style="width:10px;height:10px;border-radius:50%;background:${palette[i%palette.length]};display:inline-block;flex-shrink:0;"></span>
+      ${esc(t.keyword)}
+      <span style="font-size:9px;font-weight:700;letter-spacing:.06em;color:var(--latte);">${t._cat}</span>
+      <span class="arrow ${t.trend||'flat'}" style="min-width:auto;">${sym}</span>
+    </span>`;
+  }).join('');
+}
+
 // ── Trend bars ───────────────────────────────────────────────────────────────
 function renderTrendBars(list, containerId){
   const el = document.getElementById(containerId);
   if(!list||!list.length){el.innerHTML='<div class="placeholder">No data</div>';return;}
   const max = Math.max(...list.map(t=>t.current_interest||0),1);
-  el.innerHTML = list.slice(0,6).map((t,i)=>{
+  // All rows, ranked by interest — the list scrolls (CSS max-height) instead
+  // of silently truncating. Bar renders on its own line under the label so a
+  // long term can never collide with the bar or the number.
+  const ranked = [...list].sort((a,b)=>(b.current_interest||0)-(a.current_interest||0));
+  el.innerHTML = ranked.map((t,i)=>{
     const rc = i===0?'g':i===1?'s':i===2?'b':'';
     const pct = Math.round((t.current_interest||0)/max*100);
     const sym = t.trend==='up'?'↑':t.trend==='down'?'↓':'→';
     return `<div class="trend-row">
       <span class="t-rank ${rc}">${i+1}</span>
       <span class="t-label">${esc(t.keyword)}</span>
-      <div class="bar-wrap"><div class="bar${i===0?' top':''}" style="width:${pct}%"></div></div>
       <span class="t-val">${t.current_interest??'–'}</span>
       <span class="arrow ${t.trend||'flat'}">${sym}</span>
+      <div class="bar-wrap"><div class="bar${i===0?' top':''}" style="width:${pct}%"></div></div>
     </div>`;
   }).join('');
 }
@@ -1941,6 +2049,7 @@ function renderFlavorLeader(list){
 
 // ── Instagram posts ───────────────────────────────────────────────────────────
 function renderIgPosts(posts, criteria){
+  posts = (posts||[]).filter(p=>!_isLocalTag(p.tag, p.group));
   const el = document.getElementById('igPostGrid');
   const note = document.getElementById('rankIgPosts');
   criteria = criteria || {};
@@ -1952,9 +2061,12 @@ function renderIgPosts(posts, criteria){
   const viralN = posts.filter(p=>p.viral).length;
   if(note){
     const thresh = `${(criteria.min_likes||10000).toLocaleString()} likes + ${(criteria.min_comments||1000).toLocaleString()} comments`;
+    const rank = criteria.had_history
+      ? 'Ranked by engagement <b>gained</b> this window (measured vs last scan)'
+      : 'Ranked by engagement this window (gain deltas start after the next scan)';
     note.innerHTML = viralN
-      ? `Ranked by engagement · <span style="color:var(--cinnamon);font-weight:700;">${viralN} cleared the viral bar</span> (${thresh})`
-      : `Ranked by engagement · none cleared the viral bar (${thresh}) this window`;
+      ? `${rank} · <span style="color:var(--cinnamon);font-weight:700;">${viralN} cleared the viral bar</span> (${thresh})`
+      : `${rank} · none cleared the viral bar (${thresh})`;
   }
   el.innerHTML = posts.slice(0,9).map(p=>`
     <a href="${esc(p.post_url||'#')}" target="_blank" class="post-card">
@@ -1971,6 +2083,7 @@ function renderIgPosts(posts, criteria){
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="${LATTE}" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
           ${p.comments||0}
         </div>
+        ${p.gained_display?`<span class="post-gained">▲ ${esc(p.gained_display)}</span>`:''}
       </div>
     </a>`).join('');
 }
@@ -2122,6 +2235,7 @@ function _mapChip(hashtag){
 
 let _lastIgTags = null, _lastTtTags = null;
 function renderIgChips(tags){
+  tags = (tags||[]).filter(t=>!_isLocalTag(t.hashtag, t.group));
   _lastIgTags = tags;
   const el = document.getElementById('igChips');
   if(!tags||!tags.length){el.innerHTML='<div class="placeholder" style="padding:4px 0">No data</div>';return;}
@@ -2136,6 +2250,7 @@ function renderIgChips(tags){
 }
 
 function renderTtChips(tags){
+  tags = (tags||[]).filter(t=>!_isLocalTag(t.hashtag, t.group));
   _lastTtTags = tags;
   const el = document.getElementById('ttChips');
   if(!el) return;
@@ -2164,7 +2279,7 @@ function renderTikTok(data){
   errEl.innerHTML='';
   renderTtChips(data.hashtag_trends||[]);
   _setRankNote('rankTt', data.ranking);
-  const videos = data.top_videos||[];
+  const videos = (data.top_videos||[]).filter(v=>!_isLocalTag(v.tag, v.group));
   const crit = data.top_videos_criteria||{};
   const note = document.getElementById('rankTt');
   if(note){
@@ -2395,7 +2510,10 @@ async function loadHQ(){
          + `<div style="font-family:var(--font-mono);font-size:10px;color:var(--latte);margin-top:2px;">${esc(c.profile_note||'')}</div>`
       : `<div class="rank-note" style="margin:4px 0 4px;">Launch here</div><div style="color:var(--latte);font-style:italic;font-size:13px;">No new trend cleared this market's bar — hold classics.</div>`;
     return `<div class="card">
-      <div class="card-title" style="font-size:20px;">${esc(c.name)}</div>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div class="card-title" style="font-size:20px;">${esc(c.name)}</div>
+        <a href="/market/${esc(c.key)}" style="font-family:var(--font-mono);font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;">View market page &rarr;</a>
+      </div>
       <div style="font-family:var(--font-body);font-size:13px;color:var(--mocha);font-style:italic;margin:4px 0 12px;">${esc(c.blurb)}</div>
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;">${locs}</div>
       ${launch}
@@ -3103,8 +3221,8 @@ function renderMenuEditor(){
           color:var(--cream);width:16px;height:16px;border-radius:50%;cursor:pointer;font-size:9px;line-height:1;padding:0;">&times;</button>
       </span>`).join('') : `<span style="font-family:var(--font-body);color:var(--latte);font-style:italic;">None yet</span>`;
     return `<div style="margin-bottom:22px;">
-      <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--mocha);margin-bottom:9px;">
-        ${label} <span style="color:var(--latte);font-weight:400;">(${items.length})</span></div>
+      <div class="cat-hdr">
+        ${label} <span class="cnt">(${items.length})</span></div>
       <div>${chips}</div>
       <div style="display:flex;gap:8px;margin-top:9px;">
         <input id="add-${key}" placeholder="Add ${label.toLowerCase()}&hellip;" autocomplete="off"
@@ -3263,8 +3381,8 @@ function configListBlock(m){
     </span>`).join('') : `<span style="font-family:var(--font-body);color:var(--latte);font-style:italic;">None</span>`;
   const inputId=`cfg-${m.section}-${m.key}`;
   return `<div style="margin-bottom:18px;">
-    <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mocha);margin-bottom:8px;">
-      ${esc(m.label)} <span style="color:var(--latte);font-weight:400;">(${items.length})</span></div>
+    <div class="cat-hdr">
+      ${esc(m.label)} <span class="cnt">(${items.length})</span></div>
     <div>${chips}</div>
     <div style="display:flex;gap:8px;margin-top:8px;">
       <input id="${inputId}" placeholder="Add ${esc(m.label.toLowerCase())}&hellip;" autocomplete="off"
@@ -3474,8 +3592,30 @@ function _setRankNote(elId, ranking){
   if(el && ranking) el.innerHTML = RANKING_LABELS[ranking] || `Ranked by: ${esc(ranking)}`;
 }
 
+// Local market tags (neighborhood geo-hashtags + per-market competitors) are
+// scanned for the MARKET PAGES and HQ rollup — the main dashboard is the
+// city/national view, so they're filtered out of its chips and post feeds.
+// Data is untouched; this is display routing, not deletion.
+let _localExclude = null;
+async function loadLocalExclude(){
+  if(_localExclude) return;
+  _localExclude = new Set();
+  try{
+    const j = await fetch('/api/clusters').then(r=>r.json());
+    (j.clusters||[]).forEach(c=>{
+      (c.geo_hashtags||[]).forEach(t=>_localExclude.add(String(t).toLowerCase()));
+      (c.competitors||[]).forEach(t=>_localExclude.add(String(t).toLowerCase()));
+    });
+  }catch(e){}
+}
+function _isLocalTag(tag, group){
+  return group==='local_competitor' ||
+         (_localExclude && _localExclude.has(String(tag||'').toLowerCase()));
+}
+
 async function loadData(){
   try{
+    await loadLocalExclude();
     const r = await fetch('/api/data');
     const d = await r.json();
 
@@ -3497,6 +3637,7 @@ async function loadData(){
 
     if(d.google){
       renderFlavorChart(d.google.flavor_trends||[]);
+      renderPdChart(d.google.packaging_trends||[], d.google.design_trends||[]);
       renderTrendBars(d.google.packaging_trends||[], 'gtPack');
       renderTrendBars(d.google.design_trends||[], 'gtDesign');
       renderFlavorLeader(d.google.flavor_trends||[]);

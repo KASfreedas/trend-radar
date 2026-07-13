@@ -707,7 +707,7 @@ def api_sales_save():
 
 
 _THRESHOLD_DEFAULTS = {
-    "top_post_window_days": "10",
+    "top_post_window_days": "7",
     "tiktok_min_views": "10000", "tiktok_min_likes": "10000", "tiktok_min_comments": "1000",
     "instagram_min_likes": "10000", "instagram_min_comments": "1000",
 }
@@ -1240,6 +1240,103 @@ def api_clusters():
         save_clusters(cleaned)
         return jsonify({"status": "saved", "count": len(cleaned)})
     return jsonify({"clusters": load_clusters()})
+
+
+_PROFILE_LABEL = {"trend_forward": "Trend-forward market",
+                  "balanced": "Balanced market",
+                  "classic": "Classics-first market"}
+
+
+def _market_pulse(geo_tags: set[str]) -> dict:
+    """Per-scan local activity series for a market: the sum of its geo-tags'
+    Instagram posting rates in each recorded history snapshot. Real recorded
+    numbers only — needs 2+ snapshots before a line can honestly be drawn."""
+    from scrapers._history import load_history
+    points = []
+    for snap in load_history("instagram"):
+        total = sum(v for t, v in (snap.get("metrics") or {}).items() if t in geo_tags)
+        points.append({"t": (snap.get("at") or "")[:10], "v": round(total, 1)})
+    return {"points": points, "snapshots": len(points),
+            "metric": "sum of this market's geo-tag posts/day per scan"}
+
+
+@app.route("/market/<key>")
+def market_page(key):
+    from clusters import load_clusters
+    if not any(c["key"] == key for c in load_clusters()):
+        return render_template("market.html", market_key="", bakery_name=_bakery_name()), 404
+    return render_template("market.html", market_key=key, bakery_name=_bakery_name())
+
+
+@app.route("/api/market/<key>")
+def api_market(key):
+    """Everything one market page needs in a single fetch. Same honesty rule as
+    the briefing: every number here restates a scraped value — no composite
+    'momentum scores', no projected revenue, nothing modeled."""
+    from clusters import (load_clusters, group_by_cluster,
+                          launch_picks_for_cluster, profile_rationale)
+    from briefing.score import score_all
+    from briefing.events import upcoming_events, occasion_buzz
+
+    clusters = load_clusters()
+    order = [c["key"] for c in clusters]
+    cluster = next((c for c in clusters if c["key"] == key), None)
+    if not cluster:
+        return jsonify({"error": "No market with that key."}), 404
+
+    with _lock:
+        data = {k: _cache[k] for k in _cache}
+    scored = score_all(data)
+
+    # Launch picks, enriched with the scored candidate's real evidence lines.
+    by_term = {c.get("term"): c for c in scored}
+    picks = []
+    for p in launch_picks_for_cluster(cluster, scored):
+        src = by_term.get(p["term"], {})
+        picks.append({**p, "direction": src.get("direction"),
+                      "category": src.get("category"),
+                      "evidence": list(src.get("evidence") or [])[:2]})
+
+    geo = {g.lower() for g in (cluster.get("geo_hashtags") or [])}
+    g = group_by_cluster(data.get("instagram"), data.get("tiktok")).get(key, {})
+    local_ig = sorted(g.get("local_ig", []), key=lambda t: -(t.get("posts_per_day") or 0))[:8]
+    local_tt = sorted(g.get("local_tt", []), key=lambda t: -(t.get("videos_per_day") or 0))[:8]
+
+    # Movers restricted to this market's geo tags (real snapshot-to-snapshot).
+    from scrapers._history import load_history, _METRIC_FIELD
+    movers = []
+    for source in _METRIC_FIELD:
+        snaps = load_history(source)
+        if len(snaps) < 2:
+            continue
+        prev, curr = snaps[-2]["metrics"], snaps[-1]["metrics"]
+        for tag, now_v in curr.items():
+            then_v = prev.get(tag)
+            if tag in geo and then_v and then_v > 0:
+                movers.append({"tag": tag, "source": source, "prev": then_v, "curr": now_v,
+                               "change_pct": round((now_v - then_v) / then_v * 100, 1)})
+    movers.sort(key=lambda m: -abs(m["change_pct"]))
+
+    idx = order.index(key)
+    neighbors = {"prev": order[idx - 1], "next": order[(idx + 1) % len(order)]}
+    names = {c["key"]: c["name"] for c in clusters}
+
+    return jsonify({
+        "market": {**cluster,
+                   "profile_label": _PROFILE_LABEL.get(cluster.get("profile"), "Balanced market"),
+                   "profile_note": profile_rationale(cluster)},
+        "bakery": _bakery_name(),
+        "pulse": _market_pulse(geo),
+        "launch_picks": picks,
+        "events": upcoming_events(cluster=key)[:8],
+        "occasion_buzz": occasion_buzz(data.get("instagram"), data.get("tiktok"),
+                                       min_mentions=_discovery_int("occasion_min_mentions")),
+        "local_buzz": {"instagram": local_ig, "tiktok": local_tt},
+        "movers": movers[:6],
+        "nav": {"prev": {"key": neighbors["prev"], "name": names[neighbors["prev"]]},
+                "next": {"key": neighbors["next"], "name": names[neighbors["next"]]}},
+        "scanned_at": (data.get("instagram") or {}).get("scanned_at") or "",
+    })
 
 
 @app.route("/api/training-data")

@@ -68,3 +68,44 @@ def load_history(source: str) -> list[dict]:
         return json.loads(path.read_text(encoding="utf-8"))
     except (ValueError, OSError):
         return []
+
+
+# ── Per-POST engagement history ──────────────────────────────────────────────
+# "Became viral this week" is only measurable against what a post's engagement
+# WAS at the previous scan. Scrapers include a compact {post_url: engagement}
+# map in their result; we keep a short rolling history of those maps so the
+# next scan can compute real gained-since-last-scan deltas. Recorded only on
+# successful scrapes (same hook as the hashtag snapshots above).
+MAX_POST_SNAPSHOTS = 8
+
+
+def _post_history_path(source: str) -> Path:
+    return HISTORY_DIR / f"history_posts_{source}.json"
+
+
+def record_post_snapshot(source: str, result: dict) -> None:
+    metrics = result.get("post_engagements")
+    if not isinstance(metrics, dict) or not metrics:
+        return
+    snapshots = load_post_history(source)
+    snapshots.append({"at": datetime.now(timezone.utc).isoformat(), "metrics": metrics})
+    snapshots = snapshots[-MAX_POST_SNAPSHOTS:]
+    HISTORY_DIR.mkdir(parents=True, exist_ok=True)
+    _post_history_path(source).write_text(
+        json.dumps(snapshots, ensure_ascii=False), encoding="utf-8")
+
+
+def load_post_history(source: str) -> list[dict]:
+    path = _post_history_path(source)
+    if not path.exists():
+        return []
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (ValueError, OSError):
+        return []
+
+
+def previous_post_engagements(source: str) -> dict:
+    """{post_url: engagement} from the most recent recorded scan, else {}."""
+    snaps = load_post_history(source)
+    return dict(snaps[-1].get("metrics") or {}) if snaps else {}

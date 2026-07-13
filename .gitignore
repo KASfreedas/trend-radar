@@ -18,3 +18,8 @@ Thumbs.db
 
 # Application material — not part of the public showcase
 FELLOWSHIP-PROGRESS.md
+
+# Design working files — mock drafts and tool-generated design-system artifacts
+static/design-mock-market.html
+.design-sync/
+design-system/

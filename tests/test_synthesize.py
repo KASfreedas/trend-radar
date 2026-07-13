@@ -78,10 +78,12 @@ def _scored(term="tahini cookie", direction="rising", confidence="medium"):
 class TestSynthesizeFallback:
     def test_no_key_uses_deterministic(self, monkeypatch):
         monkeypatch.setattr(syn, "LLM_API_KEY", "")
+        monkeypatch.setattr(syn, "LLM_PROVIDER", "")  # hermetic: ignore host .env
         out = synthesize(_scored(), {"gaps": [], "retire": []})
         assert out["source"] == "deterministic"
 
     def test_llm_failure_falls_back(self, monkeypatch):
+        monkeypatch.setattr(syn, "LLM_PROVIDER", "")
         monkeypatch.setattr(syn, "LLM_API_KEY", "test-key")
         monkeypatch.setattr(syn, "_call_llm", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("boom")))
         out = synthesize(_scored(), {"gaps": [{"term": "x", "confidence": "high",
@@ -90,6 +92,7 @@ class TestSynthesizeFallback:
 
     def test_llm_fabrication_is_caught_end_to_end(self, monkeypatch):
         # A mocked LLM invents "+9000%" — synthesize() must strip it.
+        monkeypatch.setattr(syn, "LLM_PROVIDER", "")
         monkeypatch.setattr(syn, "LLM_API_KEY", "test-key")
         def fake_llm(payload, voice=""):
             return {"quiet_month": False, "headline": "Big month",
@@ -102,6 +105,7 @@ class TestSynthesizeFallback:
         assert "9000" not in out["launch"][0]["why"]
 
     def test_quiet_month_never_calls_llm(self, monkeypatch):
+        monkeypatch.setattr(syn, "LLM_PROVIDER", "")
         monkeypatch.setattr(syn, "LLM_API_KEY", "test-key")
         called = {"n": 0}
         monkeypatch.setattr(syn, "_call_llm", lambda *a, **k: called.__setitem__("n", called["n"] + 1))
@@ -109,3 +113,47 @@ class TestSynthesizeFallback:
         out = synthesize(_scored(direction="flat"), {"gaps": [], "retire": []})
         assert called["n"] == 0
         assert out["source"] == "deterministic"
+
+
+class TestOllamaProvider:
+    """LLM_PROVIDER=ollama routes briefing narrative through the local model —
+    no API key needed — with the same guardrails and deterministic fallback."""
+
+    def _ollama(self, monkeypatch):
+        monkeypatch.setattr(syn, "LLM_PROVIDER", "ollama")
+        monkeypatch.setattr(syn, "LLM_API_KEY", "")
+
+    def test_ollama_used_without_api_key(self, monkeypatch):
+        self._ollama(monkeypatch)
+        monkeypatch.setattr(syn, "_call_ollama", lambda *a, **k: {
+            "quiet_month": False, "headline": "Local headline",
+            "launch": [{"term": "tahini cookie", "why": "Rising per Google Trends: 62/100"}],
+            "watch": [], "skip": [], "gaps": [], "texture_tip": None})
+        out = synthesize(_scored(), {"gaps": [], "retire": []})
+        assert out["source"] == "llm"
+        assert out["provider"] == "ollama"
+        assert out["headline"] == "Local headline"
+
+    def test_ollama_fabrication_is_caught(self, monkeypatch):
+        self._ollama(monkeypatch)
+        monkeypatch.setattr(syn, "_call_ollama", lambda *a, **k: {
+            "quiet_month": False, "headline": "Big week",
+            "launch": [{"term": "tahini cookie", "why": "Projected +$2.1k/wk per store"}],
+            "watch": [], "skip": [], "gaps": [], "texture_tip": None})
+        out = synthesize(_scored(), {"gaps": [], "retire": []})
+        assert "2.1" not in out["launch"][0]["why"]  # invented revenue stripped
+
+    def test_ollama_down_falls_back_to_deterministic(self, monkeypatch):
+        self._ollama(monkeypatch)
+        monkeypatch.setattr(syn, "_call_ollama",
+                            lambda *a, **k: (_ for _ in ()).throw(ConnectionError("ollama not running")))
+        out = synthesize(_scored(), {"gaps": [], "retire": []})
+        assert out["source"] == "deterministic"
+
+    def test_quiet_month_never_calls_ollama(self, monkeypatch):
+        self._ollama(monkeypatch)
+        called = {"n": 0}
+        monkeypatch.setattr(syn, "_call_ollama",
+                            lambda *a, **k: called.__setitem__("n", called["n"] + 1))
+        out = synthesize(_scored(direction="flat"), {"gaps": [], "retire": []})
+        assert called["n"] == 0 and out["source"] == "deterministic"

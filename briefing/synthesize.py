@@ -15,9 +15,13 @@ Design rules (non-negotiable, from CLAUDE.md + §D):
   - If confidence is low across all candidates, return a short "quiet month".
 
 The module works with OR without an LLM:
-  - LLM_API_KEY set   -> one Anthropic Messages API call, then validated.
-  - LLM_API_KEY unset -> deterministic synthesis (restates evidence only).
-Either way the output schema is identical, so render.py / run.py don't care.
+  - LLM_PROVIDER=ollama -> one local Ollama chat call (data never leaves the
+    machine, costs nothing), then validated.
+  - LLM_API_KEY set     -> one Anthropic Messages API call, then validated.
+  - neither             -> deterministic synthesis (restates evidence only).
+Either way the output schema is identical, so render.py / run.py don't care —
+and in every mode the numbers/evidence come from the deterministic pass; a
+model only ever contributes phrasing, policed by the guardrail below.
 """
 
 from __future__ import annotations
@@ -34,6 +38,12 @@ load_dotenv(dotenv_path=Path(__file__).parent.parent / ".env", encoding="utf-8-s
 LLM_API_KEY = os.getenv("LLM_API_KEY", "").strip()
 LLM_MODEL = os.getenv("LLM_MODEL", "claude-sonnet-4-6").strip()
 LLM_URL = "https://api.anthropic.com/v1/messages"
+
+# Local model via Ollama — set LLM_PROVIDER=ollama to use it for briefing
+# narrative. No API key, no cost, and the scraped data stays on this machine.
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "").strip().lower()
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434").strip().rstrip("/")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.1:8b-instruct-q4_K_M").strip()
 
 # Verbatim system-prompt guardrails (03_BRIEFING_LAYER.md §D).
 GUARDRAILS = (
@@ -173,18 +183,16 @@ def _llm_payload(scored: list[dict], gap_result: dict, competitor: dict | None) 
     }
 
 
-def _call_llm(payload: dict, voice: str = "") -> dict | None:
-    """One Anthropic Messages API call. Returns parsed JSON synthesis or None on any failure."""
-    import requests
-
+def _build_instructions(payload: dict, voice: str = "") -> str:
+    """The shared briefing prompt — identical for every provider, so swapping
+    models never changes what the model is ALLOWED to do."""
     brand_context = (
         f"\nBrand context from the owner — use this to judge fit and tone, "
         f"but the guardrails above still apply (never invent numbers, never "
         f"cite a figure not in the evidence):\n\"{voice}\"\n"
         if voice else ""
     )
-
-    instructions = (
+    return (
         "You are the recommendation engine for a bakery's monthly "
         "'Specials Board Briefing'. Convert the scored trend data below into a "
         "decision for a busy bakery owner.\n\n"
@@ -201,6 +209,35 @@ def _call_llm(payload: dict, voice: str = "") -> dict | None:
         '"texture_tip": str|null}\n\n'
         f"DATA:\n{json.dumps(payload, default=str)}"
     )
+
+
+def _call_ollama(payload: dict, voice: str = "") -> dict | None:
+    """One local Ollama chat call (JSON mode). Same prompt, same guardrails,
+    same post-validation as the cloud path — only the model runs locally."""
+    import requests
+
+    body = {
+        "model": OLLAMA_MODEL,
+        "stream": False,
+        "format": "json",  # constrains output to valid JSON
+        "options": {"temperature": 0.3, "num_predict": 1500},
+        "messages": [
+            {"role": "system", "content": GUARDRAILS},
+            {"role": "user", "content": _build_instructions(payload, voice)},
+        ],
+    }
+    # Local inference on an 8B model can take a while on CPU — generous timeout.
+    resp = requests.post(f"{OLLAMA_URL}/api/chat", json=body, timeout=300)
+    resp.raise_for_status()
+    text = ((resp.json().get("message") or {}).get("content") or "").strip()
+    return json.loads(text) if text else None
+
+
+def _call_llm(payload: dict, voice: str = "") -> dict | None:
+    """One Anthropic Messages API call. Returns parsed JSON synthesis or None on any failure."""
+    import requests
+
+    instructions = _build_instructions(payload, voice)
 
     body = {
         "model": LLM_MODEL,
@@ -261,17 +298,20 @@ def synthesize(scored: list[dict], gap_result: dict, competitor: dict | None = N
     """
     deterministic = _deterministic_synthesis(scored, gap_result, competitor)
 
-    # Empty / quiet data: never spend an API call, never risk fabrication.
-    if deterministic["quiet_month"] or not LLM_API_KEY:
+    use_ollama = LLM_PROVIDER == "ollama"
+    # Empty / quiet data: never spend a call, never risk fabrication.
+    if deterministic["quiet_month"] or not (use_ollama or LLM_API_KEY):
         return deterministic
 
     try:
         from briefing.dna import load_dna
         voice = load_dna().get("voice", "").strip()
-        llm = _call_llm(_llm_payload(scored, gap_result, competitor), voice=voice)
+        call = _call_ollama if use_ollama else _call_llm
+        llm = call(_llm_payload(scored, gap_result, competitor), voice=voice)
         if not isinstance(llm, dict):
             return deterministic
         merged = _merge_llm_into_deterministic(llm, deterministic)
+        merged["provider"] = "ollama" if use_ollama else "anthropic"
         return _enforce_guardrails(merged, deterministic)
     except Exception as e:
         # Reliability: a flaky LLM must never block the briefing.

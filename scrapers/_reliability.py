@@ -106,8 +106,9 @@ def run_with_fallback(source: str, fn) -> dict:
             raise RuntimeError(result["error"])
         save_last_good(source, result)
         _clear_alert_state(source)
-        from scrapers._history import record_snapshot
+        from scrapers._history import record_snapshot, record_post_snapshot
         record_snapshot(source, result)
+        record_post_snapshot(source, result)
         return result
     except Exception as e:
         error_msg = str(e)

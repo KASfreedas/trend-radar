@@ -164,7 +164,7 @@ def run_full_scan(hashtags=None, results_per_page=None):
     # matches the Instagram card so both behave consistently and never render
     # empty just because niche content didn't hit viral-tier numbers.
     from scrapers._config import get_value
-    window_days = float(get_value("thresholds", "top_post_window_days", "10") or 10)
+    window_days = float(get_value("thresholds", "top_post_window_days", "7") or 7)
     min_views = int(get_value("thresholds", "tiktok_min_views", "10000") or 10000)
     min_likes = int(get_value("thresholds", "tiktok_min_likes", "10000") or 10000)
     min_comments = int(get_value("thresholds", "tiktok_min_comments", "1000") or 1000)

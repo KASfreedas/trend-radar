@@ -88,6 +88,45 @@ def _extract_words(caption):
     return [w for w in words if w not in STOP_WORDS]
 
 
+def select_top_posts(all_posts, prev, window_days, min_likes, min_comments):
+    """'Became viral this window' selection — pure function so it's testable.
+
+    Ranking metric is engagement GAINED, measured honestly:
+     - a post also seen last scan → gained = current − previous (real delta;
+       catches an old post that just blew up);
+     - a post newer than the window → all its engagement arrived within the
+       window, so gained = engagement;
+     - an older post never seen before → we can't know when its engagement
+       arrived, so it's excluded (used only in the never-empty fallback).
+    """
+    window_h = window_days * 24
+    candidates = []
+    for p in all_posts:
+        url = p.get("post_url") or ""
+        if url in prev:
+            p["gained"] = max(0.0, round(p["engagement"] - prev[url], 1))
+            p["gained_measured"] = True
+        elif p["age_hours"] <= window_h:
+            p["gained"] = p["engagement"]
+            p["gained_measured"] = False
+        else:
+            continue
+        candidates.append(p)
+    # Fallback: brand-new install or an empty window — show most-engaged
+    # posts rather than an empty card.
+    if not candidates:
+        candidates = sorted(all_posts, key=lambda x: x["engagement"], reverse=True)[:12]
+        for p in candidates:
+            p["gained"] = 0
+    candidates.sort(key=lambda x: (x.get("gained", 0), x["engagement"]), reverse=True)
+    top_posts = candidates[:12]
+    for p in top_posts:
+        p["viral"] = p["likes"] >= min_likes and p["comments"] >= min_comments
+        if p.get("gained_measured") and p["gained"] > 0:
+            p["gained_display"] = f"+{_fmt(p['gained'])} since last scan"
+    return top_posts
+
+
 def _empty(error=None):
     return {
         "source": "Instagram", "scanned_at": datetime.utcnow().isoformat(),
@@ -190,24 +229,30 @@ def run_full_scan(hashtags=None, results_limit=None):
     trending_words = [{"word": w, "count": c} for w, c in all_words.most_common(20) if len(w) > 3]
     related_tags = [{"tag": t, "count": c} for t, c in co_hashtags.most_common(15)]
 
-    # "Top posts" = the most-engaged real posts in the last N days. We ALWAYS
-    # surface the top few (so the card reflects what's actually resonating on
-    # the local tags), and separately flag the ones that clear a high "viral"
-    # bar (Settings-editable min likes AND comments) with `viral: True`. The
-    # threshold becomes a highlight, not an all-or-nothing gate — the earlier
-    # version showed nothing at all when niche/local tags never hit 10k likes +
-    # 1k comments, which read as broken. No view-count floor: regular Instagram
-    # feed posts don't expose a public view count via this scraper.
+    # "Top posts" = what BECAME viral inside the window, not merely what was
+    # posted inside it. Ranking metric is engagement GAINED, measured honestly:
+    #  - a post we also saw last scan → gained = current − previous (a real
+    #    observed delta; catches an old post that just blew up);
+    #  - a post newer than the window → all its engagement arrived within the
+    #    window, so gained = engagement;
+    #  - an older post never seen before → we can't know when its engagement
+    #    arrived, so it gets no gained score (used only as a fallback — never
+    #    ranked above a measured gainer).
+    # The absolute "viral" badge (Settings-editable min likes AND comments)
+    # still applies as a highlight, and the card is still never-empty.
     from scrapers._config import get_value
-    window_days = float(get_value("thresholds", "top_post_window_days", "10") or 10)
+    from scrapers._history import previous_post_engagements
+    window_days = float(get_value("thresholds", "top_post_window_days", "7") or 7)
     min_likes = int(get_value("thresholds", "instagram_min_likes", "10000") or 10000)
     min_comments = int(get_value("thresholds", "instagram_min_comments", "1000") or 1000)
 
-    in_window = [p for p in all_posts if p["age_hours"] <= window_days * 24]
-    in_window.sort(key=lambda x: x["engagement"], reverse=True)
-    top_posts = in_window[:12]
-    for p in top_posts:
-        p["viral"] = p["likes"] >= min_likes and p["comments"] >= min_comments
+    prev = previous_post_engagements("instagram")
+    top_posts = select_top_posts(all_posts, prev, window_days, min_likes, min_comments)
+
+    # Compact {url: engagement} map — the rolling baseline the NEXT scan
+    # measures its gains against (recorded on success via _reliability).
+    post_engagements = {p["post_url"]: p["engagement"]
+                        for p in all_posts if p.get("post_url")}
 
     return {
         "source": "Instagram",
@@ -217,11 +262,13 @@ def run_full_scan(hashtags=None, results_limit=None):
         "top_posts_criteria": {
             "window_days": window_days, "min_likes": min_likes, "min_comments": min_comments,
             "viral_count": sum(1 for p in top_posts if p["viral"]),
-            "note": "ranked by engagement; viral flag = cleared min likes AND comments",
+            "had_history": bool(prev),
+            "note": "ranked by engagement gained this window; viral flag = cleared min likes AND comments",
         },
         "trending_words": trending_words,
         "related_tags": related_tags,
         "total_posts_scraped": len(items),
         "posts_in_window": len(all_posts),
-        "ranking": "posting_volume",
+        "post_engagements": post_engagements,
+        "ranking": "engagement_gained",
     }
