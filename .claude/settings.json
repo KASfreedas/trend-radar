@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)",
+      "Bash(cat .env*)",
+      "Bash(cat ./.env*)",
+      "Bash(cat secrets/*)",
+      "Bash(cat ./secrets/*)",
+      "Bash(type .env*)",
+      "Bash(type ./.env*)",
+      "Bash(more .env*)",
+      "Bash(head .env*)",
+      "Bash(tail .env*)",
+      "Bash(less .env*)",
+      "Bash(nl .env*)",
+      "Bash(xxd .env*)",
+      "Bash(od .env*)",
+      "Bash(strings .env*)",
+      "Bash(grep * .env*)",
+      "Bash(rg * .env*)",
+      "Bash(awk * .env*)",
+      "Bash(sed * .env*)",
+      "Bash(sort .env*)",
+      "Bash(cp .env*)",
+      "Bash(mv .env*)"
+    ]
+  }
+}
