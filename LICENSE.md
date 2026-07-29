@@ -35,7 +35,7 @@ URL for them above, as well as copies of any plain-text lines
 beginning with `Required Notice:` that the licensor provided
 with the software.  For example:
 
-> Required Notice: Copyright Ian Jun (https://github.com/IanJun-bot)
+> Required Notice: Copyright Ian Jun (https://github.com/KASfreedas)
 
 ## Changes and New Works License
 
@@ -132,7 +132,7 @@ of your licenses.
 
 ---
 
-Required Notice: Copyright Ian Jun (https://github.com/IanJun-bot)
+Required Notice: Copyright Ian Jun (https://github.com/KASfreedas)
 
 **Commercial licensing:** this software is available for commercial
 use under a separate agreement. Contact the copyright holder.
